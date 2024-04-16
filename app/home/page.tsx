@@ -6,25 +6,21 @@ import readUserSession from "../lib";
 import FormBuilder from "../components/FormBuilder";
 
 export default async function Page() {
+  const supabase = await createClient();
   const {
     data: { session },
   } = await readUserSession();
   if (!session) {
     return redirect("/login?message=You must be logged in to do that.");
-  } 
-  // else {
-  //   console.log(session);
-  // }
-  // const supabase = await createClient();
+  }
 
-  // const {
-  //   data: { user },
-  // } = await supabase.auth.getUser();
-  // if (!user) {
-  //   return redirect("/login?message=You must be logged in to do that.");
-  // } else {
-  //   console.log(user);
-  // }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  console.log(user);
+
+  // console.log(session);
+
   const signOut = async () => {
     "use server";
 
@@ -40,7 +36,7 @@ export default async function Page() {
           <Button type="submit">Logout</Button>
         </form>
       </Group>
-      <FormBuilder/>
+      <FormBuilder />
     </Container>
   );
 }

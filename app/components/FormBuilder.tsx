@@ -9,7 +9,7 @@ export type FormField = {
   formfields: {
     label: string;
     type: "text" | "number" | "date" | "select" | "multiSelect";
-    options?: string;
+    options?: string[];
     required: boolean;
   }[];
 };
@@ -18,7 +18,7 @@ export default function FormBuilder() {
   const { register, control, handleSubmit, watch } = useForm<FormField>({
     defaultValues: {
       formfields: [
-        { label: "test", type: "text", options: "", required: false },
+        { label: "test", type: "text", options: [""], required: false },
       ],
     },
   });
@@ -27,7 +27,7 @@ export default function FormBuilder() {
     control,
   });
   const onSubmit = (data: FormField) => {
-    console.log(data);
+    // console.log(data);
     createForms(data);
   };
 
@@ -85,7 +85,7 @@ export default function FormBuilder() {
             append({
               label: "",
               type: "text",
-              options: "",
+              options: [""],
               required: false,
             })
           }

@@ -34,7 +34,7 @@ export async function signup(formData: FormData) {
   const { error } = await supabase.auth.signUp(data);
 
   if (error) {
-    redirect("/error");
+    console.log(error);
   }
 
   revalidatePath("/", "layout");
@@ -45,44 +45,56 @@ export async function createForms(formData: FormField) {
   try {
     const supabase = await createClient();
 
-    // Insert form metadata into 'forms' table
     const { data: newForm, error: formError } = await supabase
-      .from('forms')
+      .from("forms")
       .insert({
         formname: formData.formName,
         formdescription: formData.formDescription,
-      });
-
+      })
+      .single();
+    // if (newForm) {
+    //   console.log("this is your submitted data: ", newForm);
+    // } else {
+    //   console.log("can't retrieve the data you entered.");
+    // }
     if (formError) {
-      throw new Error(`Error inserting form metadata: ${formError.message}`);
+      throw new Error(
+        `Insert to forms, Error inserting form metadata: ${formError.message}`
+      );
     }
-
-    const formId = newForm?.[0]?.id;
+    const { data: formId } = await supabase
+      .from("forms")
+      .select("id")
+      .eq("formname", formData.formName)
+      .single();
 
     if (!formId) {
-      throw new Error('Failed to retrieve form ID');
+      console.log("Failed fetching form ID");
+    } else {
+      console.log("your form ID: ", formId.id);
     }
 
-    // Prepare form fields data for insertion
     const fieldsToInsert = formData.formfields.map((field) => ({
-      formid: formId, // Use 'formid' instead of 'formId' if that's the column name in your table
+      formid: formId?.id,
       label: field.label,
       type: field.type,
-      options: field.options || '',
+      options: field.options || "",
       required: field.required,
     }));
 
-    // Insert form fields into 'form_fields' table
+    console.log(fieldsToInsert);
     const { data: newFields, error: fieldsError } = await supabase
-      .from('form_fields')
+      .from("form_fields")
       .insert(fieldsToInsert);
 
     if (fieldsError) {
-      throw new Error(`Error inserting form fields: ${fieldsError.message}`);
+      throw new Error(
+        `Insert to form_fields, Error inserting form fields: ${fieldsError.message}`
+      );
     }
 
-    console.log('Form data inserted successfully!');
+    console.log("Form data inserted successfully!");
   } catch (error) {
-    console.error('Error inserting form data:', error.message);
+    console.error("Error inserting form data to relationship:", error);
   }
 }
