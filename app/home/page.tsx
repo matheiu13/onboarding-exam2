@@ -1,9 +1,19 @@
 import "@mantine/core/styles.css";
-import { Container, Button, Flex, TextInput, Group } from "@mantine/core";
+import {
+  Container,
+  Button,
+  Flex,
+  TextInput,
+  Group,
+  Modal,
+} from "@mantine/core";
 import createClient from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import readUserSession from "../lib";
 import FormBuilder from "../components/FormBuilder";
+import DisplayForms from "../components/DisplayForms";
+import { useDisclosure } from "@mantine/hooks";
+// import { greetPerson } from "../auth/actions";
 
 export default async function Page() {
   const supabase = await createClient();
@@ -17,8 +27,7 @@ export default async function Page() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  console.log(user);
-
+  // console.log(user);
   // console.log(session);
 
   const signOut = async () => {
@@ -37,6 +46,7 @@ export default async function Page() {
         </form>
       </Group>
       <FormBuilder />
+      <DisplayForms />
     </Container>
   );
 }

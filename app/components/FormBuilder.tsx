@@ -1,7 +1,16 @@
 "use client";
 import { useForm, useFieldArray, Controller, useWatch } from "react-hook-form";
-import { TextInput, Group, Select, Checkbox } from "@mantine/core";
+import {
+  TextInput,
+  Group,
+  Select,
+  Checkbox,
+  Button,
+  Modal,
+} from "@mantine/core";
 import { createForms } from "../auth/actions";
+import { createClient } from "@/utils/supabase/client";
+import { useDisclosure } from "@mantine/hooks";
 
 export type FormField = {
   formName: string;
@@ -14,12 +23,21 @@ export type FormField = {
   }[];
 };
 
+async function greetPerson() {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("greet", { name: "World" });
+    console.log("your data: ", data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 export default function FormBuilder() {
+  const [opened, { open, close }] = useDisclosure(false);
   const { register, control, handleSubmit, watch } = useForm<FormField>({
     defaultValues: {
-      formfields: [
-        { label: "test", type: "text", options: [""], required: false },
-      ],
+      formfields: [{ label: "", type: "text", options: [""], required: false }],
     },
   });
   const { fields, append, remove } = useFieldArray({
@@ -27,73 +45,92 @@ export default function FormBuilder() {
     control,
   });
   const onSubmit = (data: FormField) => {
-    // console.log(data);
     createForms(data);
   };
 
   return (
     <div>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <TextInput {...register("formName")} placeholder="form name" />
-        <TextInput
-          {...register("formDescription")}
-          placeholder="form description"
-        />
-        {fields.map((field, index) => {
-          return (
-            <div key={field.id}>
-              <Group key={field.id}>
-                <TextInput
-                  placeholder="name"
-                  label="label"
-                  {...register(`formfields.${index}.label` as const)}
-                  defaultValue={field.label}
-                />
-                <Controller
-                  name={`formfields.${index}.type` as const}
-                  control={control}
-                  defaultValue={field.type}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      label="Type"
-                      data={["text", "number", "date", "select", "multiSelect"]}
+      {/* <Button onClick={greetPerson} color="green">
+        Greet
+      </Button> */}
+      <Button onClick={open}>Add a form</Button>
+      <Modal opened={opened} onClose={close} title="create a form" size="xl">
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <TextInput
+            {...register("formName")}
+            label="Form Name"
+            placeholder="enter form name"
+            required
+          />
+          <TextInput
+            {...register("formDescription")}
+            label="Form Description"
+            placeholder="enter your form description"
+            required
+          />
+          {fields.map((field, index) => {
+            return (
+              <div key={field.id}>
+                <Group key={field.id}>
+                  <TextInput
+                    placeholder="name"
+                    label="label"
+                    {...register(`formfields.${index}.label` as const)}
+                    defaultValue={field.label}
+                    required
+                  />
+                  <Controller
+                    name={`formfields.${index}.type` as const}
+                    control={control}
+                    defaultValue={field.type}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        label="Type"
+                        data={[
+                          "text",
+                          "number",
+                          "date",
+                          "select",
+                          "multiSelect",
+                        ]}
+                      />
+                    )}
+                  />
+                  {(watch(`formfields.${index}.type`) === "select" ||
+                    watch(`formfields.${index}.type`) === "multiSelect") && (
+                    <TextInput
+                      {...register(`formfields.${index}.options` as const)}
+                      label="Options (comma-separated)"
                     />
                   )}
-                />
-                {(watch(`formfields.${index}.type`) === "select" ||
-                  watch(`formfields.${index}.type`) === "multiSelect") && (
-                  <TextInput
-                    {...register(`formfields.${index}.options` as const)}
-                    label="Options (comma-separated)"
+                  <Checkbox
+                    {...register(`formfields.${index}.required` as const)}
+                    label="Required"
                   />
-                )}
-                <Checkbox
-                  {...register(`formfields.${index}.required` as const)}
-                  label="Required"
-                />
-                <button type="button" onClick={() => remove(index)}>
-                  DELETE
-                </button>
-              </Group>
-            </div>
-          );
-        })}
-        <button
-          type="button"
-          onClick={() =>
-            append({
-              label: "",
-              type: "text",
-              options: [""],
-              required: false,
-            })
-          }
-        >
-          APPEND
-        </button>
-        <input type="submit" />
-      </form>
+                  <button type="button" onClick={() => remove(index)}>
+                    DELETE
+                  </button>
+                </Group>
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() =>
+              append({
+                label: "",
+                type: "text",
+                options: [""],
+                required: false,
+              })
+            }
+          >
+            APPEND
+          </button>
+          <input type="submit" />
+        </form>
+      </Modal>
     </div>
   );
 }
