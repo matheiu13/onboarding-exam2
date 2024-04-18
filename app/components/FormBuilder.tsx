@@ -23,19 +23,9 @@ export type FormField = {
   }[];
 };
 
-async function greetPerson() {
-  try {
-    const supabase = await createClient();
-    const { data, error } = await supabase.rpc("greet", { name: "World" });
-    console.log("your data: ", data);
-  } catch (error) {
-    console.error(error);
-  }
-}
-
 export default function FormBuilder() {
   const [opened, { open, close }] = useDisclosure(false);
-  const { register, control, handleSubmit, watch } = useForm<FormField>({
+  const { register, control, handleSubmit, watch, reset } = useForm<FormField>({
     defaultValues: {
       formfields: [{ label: "", type: "text", options: [""], required: false }],
     },
@@ -46,14 +36,15 @@ export default function FormBuilder() {
   });
   const onSubmit = (data: FormField) => {
     createForms(data);
+    reset();
+    close();
   };
 
   return (
     <div>
-      {/* <Button onClick={greetPerson} color="green">
-        Greet
-      </Button> */}
-      <Button onClick={open}>Add a form</Button>
+      <Group>
+        <Button onClick={open}>Add a form</Button>
+      </Group>
       <Modal opened={opened} onClose={close} title="create a form" size="xl">
         <form onSubmit={handleSubmit(onSubmit)}>
           <TextInput

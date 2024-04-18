@@ -1,26 +1,32 @@
 "use client";
 import { Container, Button, Flex, TextInput } from "@mantine/core";
 import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup"
-import * as yup from "yup"
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import Link from "next/link";
+import { signup } from "../auth/actions";
 
 type userRegisterData = {
-    email: string;
-    password: string;
-    confirmPassword: string;
-}
+  email: string;
+  password: string;
+  confirmPassword: string;
+};
 
 const schema = yup
   .object({
     email: yup.string().required(),
     password: yup.string().required(),
-    confirmPassword: yup.string().required().oneOf([yup.ref('password')], 'Passwords must match'),
+    confirmPassword: yup
+      .string()
+      .required()
+      .oneOf([yup.ref("password")], "Passwords must match"),
   })
-  .required()
+  .required();
 
 export default function Page() {
-  const { register, handleSubmit } = useForm<userRegisterData>({resolver: yupResolver(schema),});
+  const { register, handleSubmit } = useForm<userRegisterData>({
+    resolver: yupResolver(schema),
+  });
   return (
     <Container h="100vh">
       <h1>Register page</h1>
@@ -33,9 +39,7 @@ export default function Page() {
         wrap="wrap"
       >
         <form
-          onSubmit={handleSubmit((data) => {
-            console.log(data);
-          })}
+          action={signup}
           style={{
             width: "300px",
             display: "flex",
