@@ -19,18 +19,19 @@ export default async function Page({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) {
-    return redirect("/login?message=You must be logged in to do that.");
-  }
 
   const { data: forms, error } = await supabase.rpc("get_form_and_form_field", {
     start: per_page,
     en: start,
   });
   if (error) {
-    console.log(error.message);
+    console.log("error fetching data: ", error.message);
   } else {
-    console.log(forms);
+    // console.log("your forms: ", forms);
+  }
+
+  if (!user) {
+    redirect("/login?message=You must be logged in to do that.");
   }
 
   return (
@@ -38,10 +39,10 @@ export default async function Page({
       <FormBuilder />
       <br />
       <DisplayForms
-        Forms={forms}
+        Forms={forms[0]}
         offset={page}
         limit={per_page}
-        length={forms?.length}
+        length={forms[1]}
       />
     </Container>
   );

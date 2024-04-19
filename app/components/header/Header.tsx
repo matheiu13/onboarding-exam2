@@ -16,16 +16,29 @@ export default async function Header() {
   return (
     <Container p={10} w="100vw">
       {user ? (
-        <Group justify="end">
-          <Text>{user.user_metadata.name}</Text>
-          <Avatar
-            src={user.user_metadata.picture}
-            alt={`${user.user_metadata.name}'s avatar`}
-          />
-          <form action={signOut}>
-            <Button type="submit">Logout</Button>
-          </form>
-        </Group>
+        <>
+          {!user.user_metadata.full_name ? (
+            <Group justify="space-between">
+              <Text c="green" size="lg" fw={500}>
+                Sample App
+              </Text>
+              <form action={signOut}>
+                <Button type="submit">Logout</Button>
+              </form>
+            </Group>
+          ) : (
+            <Group justify="end">
+              <Text>{user.user_metadata.full_name}</Text>
+              <Avatar
+                src={user.user_metadata.picture}
+                alt={`${user.user_metadata.full_name}'s avatar`}
+              />
+              <form action={signOut}>
+                <Button type="submit">Logout</Button>
+              </form>
+            </Group>
+          )}
+        </>
       ) : (
         <Text c="green" size="lg" fw={500}>
           Sample App

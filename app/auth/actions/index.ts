@@ -20,7 +20,17 @@ export async function login(formData: FormData) {
     console.log(error);
     redirect(`/login?message=${error.message}`);
   }
-  redirect("/home");
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return redirect("/login?message=You must be logged in to do that.");
+  } else if (!user.user_metadata.full_name) {
+    return redirect("/onboarding");
+  } else {
+    return redirect("/home");
+  }
 }
 
 export async function signup(formData: FormData) {
@@ -37,7 +47,7 @@ export async function signup(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect(`/login?message${error?.message}`);
+  redirect(`/login`);
 }
 
 export async function createForms(formData: FormField) {

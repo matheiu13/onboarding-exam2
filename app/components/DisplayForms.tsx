@@ -17,10 +17,11 @@ import {
   TextInput,
   Select,
   MultiSelect,
+  Box,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useDisclosure } from "@mantine/hooks";
+import { useDebouncedValue } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 // import Pagination from "./Pagination";
 
@@ -42,13 +43,19 @@ export default function DisplayForms({
   limit: string | string[] | undefined;
   length: number | undefined;
 }) {
-  // const [opened, { open, close }] = useDisclosure(false);
-  const [formData, setFormData] = useState(Forms);
+  const [form, setForm] = useState<any>(Forms);
+  const [value, setValue] = useState("");
+  const [debounced] = useDebouncedValue(value, 600);
   const supabase = createClient();
   const router = useRouter();
 
   const page = offset ?? "1";
   const per_page = limit ?? "10";
+
+  const start = (Number(page) - 1) * Number(per_page);
+  const end = start + (Number(per_page) - 1);
+
+  // const entries = form.slice(start, end);
 
   useEffect(() => {
     const channel = supabase
@@ -70,6 +77,37 @@ export default function DisplayForms({
       supabase.removeChannel(channel);
     };
   }, [supabase, router]);
+
+  useEffect(() => {
+    const fetchForms = async () => {
+      if (debounced.trim() === "") {
+        setForm(Forms);
+      } else {
+        const { data: form_table, error } = await supabase
+          .from("form_table")
+          .select("*", {
+            count: "exact",
+            head: true,
+          })
+          .ilike("form_name", `%${debounced}%`);
+        // .range(start, end);
+        // console.log("your form: ", form_table); form_id, form_name, form_description,  form_form_field_table(label, type, options, required)
+        if (error) console.log(error);
+        console.log(form_table);
+
+        setForm(form_table);
+      }
+    };
+
+    fetchForms();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debounced]);
+
+  useEffect(() => {
+    setForm(Forms);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [Forms]);
+
   const valueHandler = (options: string) => {
     const arrayFromInput = options.split(",").map((item) => item.trim());
     return arrayFromInput;
@@ -80,7 +118,7 @@ export default function DisplayForms({
       size: "lg",
       children: (
         <Container>
-          <Text size="sm">{formFieldData.description}</Text>
+          <Text size="sm">{formFieldData.form_description}</Text>
           {formFieldData.form_form_field_table.map(
             (field: any, index: number) => {
               return (
@@ -137,6 +175,10 @@ export default function DisplayForms({
           // <Pagination hasNextPage={end < length} hasPrevPage={start > 0} />
         )}
       </Group>
+      <TextInput
+        label="search for a form"
+        onChange={(event) => setValue(event.currentTarget.value)}
+      />
       <Table>
         <TableThead>
           <TableTr>
@@ -146,12 +188,16 @@ export default function DisplayForms({
           </TableTr>
         </TableThead>
         <TableTbody>
-          {Forms?.map((form: FormField, index: number) => {
+          {form?.map((form: FormField, index: number) => {
             return (
               <TableTr key={index}>
                 <TableTd>
                   <Anchor
                     onClick={() => {
+                      console.log("test");
+
+                      console.log(form);
+
                       openModal(form);
                     }}
                   >

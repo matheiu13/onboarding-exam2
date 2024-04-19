@@ -119,7 +119,7 @@ export default function FormBuilder() {
           >
             APPEND
           </button>
-          <input type="submit" />
+          <Button type="submit">Submit</Button>
         </form>
       </Modal>
     </div>
