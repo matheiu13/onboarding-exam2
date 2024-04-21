@@ -67,3 +67,19 @@ export async function createForms(formData: FormField) {
     console.error("Error inserting form data to relationship:", error);
   }
 }
+
+export async function deleteForms(form_id: string){
+  try {
+    const supabase = createClientClient();
+    const { data, error } = await supabase.rpc("delete_form_and_formfield", {
+      form_id_to_delete: form_id,
+    });
+    if (error) {
+      console.log("there's an error deleting your data: ", error);
+    } else {
+      console.log("response: ", data);
+    }
+  } catch (error) {
+    console.error("Error deleting data:", error);
+  }
+}

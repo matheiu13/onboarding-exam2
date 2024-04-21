@@ -18,11 +18,13 @@ import {
   Select,
   MultiSelect,
   Box,
+  Button,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedValue } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
+import { deleteForms } from "../auth/actions";
 // import Pagination from "./Pagination";
 
 type FormField = {
@@ -56,14 +58,26 @@ export default function DisplayForms({
   const end = start + (Number(per_page) - 1);
 
   // const entries = form.slice(start, end);
-
+  const deleteFormSingle = async (form_id: string) => {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.from('form_table').delete().eq('form_id', form_id);
+      if (error) {
+        console.log("there's an error deleting your data: ", error);
+      } else {
+        console.log("response: ", data);
+      }
+    } catch (error) {
+      console.error("Error deleting data:", error);
+    }
+  };
   useEffect(() => {
     const channel = supabase
       .channel("forms_realtime")
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "form_table",
         },
@@ -185,6 +199,7 @@ export default function DisplayForms({
             <TableTh>Form ID</TableTh>
             <TableTh>Form Name</TableTh>
             <TableTh>Form Description</TableTh>
+            <TableTh>Action</TableTh>
           </TableTr>
         </TableThead>
         <TableTbody>
@@ -206,6 +221,15 @@ export default function DisplayForms({
                 </TableTd>
                 <TableTd>{form.form_name}</TableTd>
                 <TableTd>{form.form_description}</TableTd>
+                <TableTd>
+                  <Button
+                    onClick={() => {
+                      deleteFormSingle(form.form_id);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </TableTd>
               </TableTr>
             );
           })}
